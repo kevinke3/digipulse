@@ -22,10 +22,16 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    def __repr__(self):
+        return f'<User {self.username}>'
+
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
     posts = db.relationship('Post', backref='category', lazy=True)
+
+    def __repr__(self):
+        return f'<Category {self.name}>'
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -40,7 +46,10 @@ class Post(db.Model):
     
     author_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
-    comments = db.relationship('Comment', backref='post', lazy=True)
+    comments = db.relationship('Comment', backref='post', lazy=True, cascade='all, delete-orphan')
+
+    def __repr__(self):
+        return f'<Post {self.title}>'
 
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -51,8 +60,14 @@ class Comment(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
 
+    def __repr__(self):
+        return f'<Comment {self.content[:20]}...>'
+
 class NewsletterSubscription(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     subscribed_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
+
+    def __repr__(self):
+        return f'<NewsletterSubscription {self.email}>'
