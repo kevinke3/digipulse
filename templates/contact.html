@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto fade-in">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
+        <h1 class="text-3xl font-bold mb-6">Contact Us</h1>
+        
+        <div class="grid md:grid-cols-2 gap-8">
+            <div>
+                <h2 class="text-2xl font-semibold mb-4">Get in Touch</h2>
+                <p class="text-gray-600 dark:text-gray-400 mb-6">
+                    We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+                </p>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        <i class="fas fa-envelope text-blue-600 mr-3"></i>
+                        <span>contact@dailypulse.com</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-phone text-blue-600 mr-3"></i>
+                        <span>+1 (555) 123-4567</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-map-marker-alt text-blue-600 mr-3"></i>
+                        <span>123 News Street, Media City</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <form method="POST" action="{{ url_for('contact') }}">
+                    <div class="form-group">
+                        <label class="form-label">Your Name</label>
+                        <input type="text" name="name" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" name="email" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Message</label>
+                        <textarea name="message" class="form-textarea" rows="5" required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-full">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
