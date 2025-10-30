@@ -4,8 +4,6 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from flask_mail import Mail, Message
 from datetime import datetime
 import os
-from werkzeug.utils import secure_filename
-from PIL import Image
 import uuid
 
 # Import your models and config
@@ -55,27 +53,13 @@ def save_image(file, folder):
         file_path = os.path.join(upload_path, filename)
         
         try:
-            # Resize and save image
-            image = Image.open(file)
-            
-            # Set different sizes based on folder
-            if folder == 'profiles':
-                size = (300, 300)  # Profile pictures
-            else:  # posts
-                size = (1200, 800)  # Post featured images
-            
-            image.thumbnail(size, Image.Resampling.LANCZOS)
-            
-            # Convert to RGB if necessary
-            if image.mode in ('RGBA', 'P'):
-                image = image.convert('RGB')
-            
-            image.save(file_path, 'JPEG', quality=85)
+            # Save the file directly without processing
+            file.save(file_path)
             return filename, None
             
         except Exception as e:
-            print(f"Error processing image: {e}")
-            return None, "Error processing image."
+            print(f"Error saving image: {e}")
+            return None, "Error saving image."
     
     return None, "Invalid file type. Allowed types: PNG, JPG, JPEG, GIF, WEBP."
 
@@ -406,8 +390,14 @@ def internal_error(error):
 if __name__ == '__main__':
     with app.app_context():
         # Create upload directories
-        os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'profiles'), exist_ok=True)
-        os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'posts'), exist_ok=True)
+        try:
+            upload_dirs = ['profiles', 'posts']
+            for directory in upload_dirs:
+                dir_path = os.path.join(app.config['UPLOAD_FOLDER'], directory)
+                os.makedirs(dir_path, exist_ok=True)
+            print("Upload directories created successfully!")
+        except Exception as e:
+            print(f"Warning: Could not create upload directories: {e}")
         
         db.create_all()
         # Create default categories
@@ -426,5 +416,8 @@ if __name__ == '__main__':
             db.session.add(admin)
             db.session.commit()
             print("Admin user created: admin@dailypulse.com / admin123")
+        
+        print("Application started successfully!")
+        print("Access the site at: http://localhost:5000")
     
     app.run(debug=True)
