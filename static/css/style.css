@@ -896,3 +896,350 @@ a:focus {
     color: #fef3c7;
     border-color: #f59e0b;
 }
+
+/* Fixed Navigation Styles */
+.nav-user-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-left: auto;
+}
+
+/* Dark Mode Toggle Button */
+.dark-mode-btn {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    background: transparent;
+    border: none;
+}
+
+.dark-mode-btn:hover {
+    background: var(--bg-gray);
+    transform: scale(1.1);
+}
+
+.dark-mode-btn .light-icon {
+    display: none;
+}
+
+.dark-mode-btn .dark-icon {
+    display: block;
+}
+
+/* Dark mode styles for the toggle */
+.dark .dark-mode-btn .light-icon {
+    display: block;
+}
+
+.dark .dark-mode-btn .dark-icon {
+    display: none;
+}
+
+.dark .dark-mode-btn:hover {
+    background: var(--bg-gray);
+}
+
+/* Dropdown Styles */
+.nav-dropdown {
+    position: relative;
+}
+
+.nav-dropdown-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.nav-dropdown-content {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    min-width: 200px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.nav-dropdown:hover .nav-dropdown-content {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.nav-dropdown-link {
+    display: block;
+    padding: 0.75rem 1rem;
+    color: var(--text-dark);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.nav-dropdown-link:last-child {
+    border-bottom: none;
+}
+
+.nav-dropdown-link:hover {
+    background: var(--bg-gray);
+    color: var(--primary-blue);
+}
+
+/* User Dropdown Specific */
+.user-dropdown {
+    right: 0;
+    left: auto;
+    min-width: 220px;
+}
+
+.nav-user-info {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-gray);
+}
+
+.nav-user-info strong {
+    display: block;
+    color: var(--text-dark);
+    margin-bottom: 0.25rem;
+}
+
+.nav-user-role {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Mobile Navigation Fixes */
+@media (max-width: 768px) {
+    .nav-links {
+        position: fixed;
+        top: 70px;
+        left: -100%;
+        width: 100%;
+        height: calc(100vh - 70px);
+        background: var(--bg-white);
+        flex-direction: column;
+        padding: 2rem;
+        transition: left 0.3s ease;
+        gap: 0;
+        overflow-y: auto;
+        z-index: 999;
+    }
+
+    .nav-links.active {
+        left: 0;
+    }
+
+    .nav-link {
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--border-color);
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .nav-link:last-child {
+        border-bottom: none;
+    }
+
+    .nav-user-section {
+        flex-direction: column;
+        width: 100%;
+        gap: 0;
+        margin-left: 0;
+        border-top: 1px solid var(--border-color);
+        padding-top: 1rem;
+        margin-top: 1rem;
+    }
+
+    .dark-mode-btn {
+        width: 100%;
+        height: auto;
+        padding: 1rem 0;
+        border-radius: 0;
+        justify-content: flex-start;
+        background: transparent !important;
+    }
+
+    .dark-mode-btn:hover {
+        transform: none;
+        background: var(--bg-gray) !important;
+    }
+
+    /* Mobile Dropdown Styles */
+    .nav-dropdown {
+        width: 100%;
+    }
+
+    .nav-dropdown-btn {
+        width: 100%;
+        justify-content: space-between;
+        padding: 1rem 0;
+    }
+
+    .nav-dropdown-content {
+        position: static;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        box-shadow: none;
+        border: none;
+        background: transparent;
+        margin-left: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .nav-dropdown-link {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.9rem;
+    }
+
+    .nav-dropdown-link:last-child {
+        border-bottom: none;
+    }
+
+    .user-dropdown {
+        position: static;
+        min-width: auto;
+    }
+
+    .nav-user-info {
+        margin: -1rem -1rem 1rem -1rem;
+        border-radius: 0;
+    }
+
+    /* Hide toggle bar when menu is open */
+    .nav-toggle.active .bar:nth-child(1) {
+        transform: rotate(45deg) translate(5px, 5px);
+    }
+
+    .nav-toggle.active .bar:nth-child(2) {
+        opacity: 0;
+    }
+
+    .nav-toggle.active .bar:nth-child(3) {
+        transform: rotate(-45deg) translate(7px, -6px);
+    }
+}
+
+/* Desktop specific styles */
+@media (min-width: 769px) {
+    .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+    }
+
+    .nav-toggle {
+        display: none;
+    }
+}
+
+/* Navigation Toggle Button */
+.nav-toggle {
+    display: none;
+    flex-direction: column;
+    cursor: pointer;
+    padding: 0.5rem;
+    z-index: 1001;
+}
+
+.bar {
+    width: 25px;
+    height: 2px;
+    background: var(--text-dark);
+    margin: 3px 0;
+    transition: 0.3s;
+    border-radius: 2px;
+}
+
+/* Improved mobile toggle button */
+@media (max-width: 768px) {
+    .nav-toggle {
+        display: flex;
+    }
+}
+
+/* Ensure logo is always visible */
+.nav-logo {
+    z-index: 1001;
+}
+
+/* Fix for flash messages */
+.flash-messages {
+    max-width: 1200px;
+    margin: 0 auto 2rem;
+    padding: 0 1rem;
+}
+
+.flash-message {
+    padding: 1rem 1.5rem;
+    border-radius: 0.75rem;
+    margin-bottom: 1rem;
+    font-weight: 500;
+    border-left: 4px solid;
+}
+
+.flash-message.success {
+    background: #dcfce7;
+    color: #166534;
+    border-color: #16a34a;
+}
+
+.flash-message.error {
+    background: #fee2e2;
+    color: #991b1b;
+    border-color: #dc2626;
+}
+
+.flash-message.info {
+    background: #dbeafe;
+    color: #1e40af;
+    border-color: #2563eb;
+}
+
+.flash-message.warning {
+    background: #fef3c7;
+    color: #92400e;
+    border-color: #d97706;
+}
+
+/* Dark mode flash messages */
+.dark .flash-message.success {
+    background: #14532d;
+    color: #dcfce7;
+    border-color: #22c55e;
+}
+
+.dark .flash-message.error {
+    background: #7f1d1d;
+    color: #fee2e2;
+    border-color: #ef4444;
+}
+
+.dark .flash-message.info {
+    background: #1e3a8a;
+    color: #dbeafe;
+    border-color: #3b82f6;
+}
+
+.dark .flash-message.warning {
+    background: #78350f;
+    color: #fef3c7;
+    border-color: #f59e0b;
+}

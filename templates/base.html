@@ -20,65 +20,112 @@
             </div>
             
             <div class="nav-links" id="navLinks">
-                <a href="{{ url_for('index') }}" class="nav-link">Home</a>
+                <a href="{{ url_for('index') }}" class="nav-link">
+                    <i class="fas fa-home mr-2"></i>Home
+                </a>
                 
-                <!-- All Categories -->
-                <div class="relative group">
-                    <button class="nav-link flex items-center gap-1">
-                        Categories <i class="fas fa-chevron-down text-xs"></i>
+                <!-- Categories Dropdown -->
+                <div class="nav-dropdown">
+                    <button class="nav-link nav-dropdown-btn">
+                        <i class="fas fa-th-large mr-2"></i>Categories
+                        <i class="fas fa-chevron-down text-xs ml-1 transition-transform"></i>
                     </button>
-                    <div class="absolute left-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                        <div class="p-2">
-                            <a href="{{ url_for('category_posts', category_name='Technology') }}" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Technology</a>
-                            <a href="{{ url_for('category_posts', category_name='Business') }}" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Business</a>
-                            <a href="{{ url_for('category_posts', category_name='Lifestyle') }}" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Lifestyle</a>
-                            <a href="{{ url_for('category_posts', category_name='Entertainment') }}" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Entertainment</a>
-                            <a href="{{ url_for('category_posts', category_name='Sports') }}" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Sports</a>
-                            <a href="{{ url_for('category_posts', category_name='Health') }}" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Health</a>
-                            <a href="{{ url_for('category_posts', category_name='Politics') }}" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Politics</a>
-                        </div>
+                    <div class="nav-dropdown-content">
+                        <a href="{{ url_for('category_posts', category_name='Technology') }}" class="nav-dropdown-link">
+                            <i class="fas fa-laptop-code mr-2"></i>Technology
+                        </a>
+                        <a href="{{ url_for('category_posts', category_name='Business') }}" class="nav-dropdown-link">
+                            <i class="fas fa-chart-line mr-2"></i>Business
+                        </a>
+                        <a href="{{ url_for('category_posts', category_name='Lifestyle') }}" class="nav-dropdown-link">
+                            <i class="fas fa-heart mr-2"></i>Lifestyle
+                        </a>
+                        <a href="{{ url_for('category_posts', category_name='Entertainment') }}" class="nav-dropdown-link">
+                            <i class="fas fa-film mr-2"></i>Entertainment
+                        </a>
+                        <a href="{{ url_for('category_posts', category_name='Sports') }}" class="nav-dropdown-link">
+                            <i class="fas fa-football-ball mr-2"></i>Sports
+                        </a>
+                        <a href="{{ url_for('category_posts', category_name='Health') }}" class="nav-dropdown-link">
+                            <i class="fas fa-heartbeat mr-2"></i>Health
+                        </a>
+                        <a href="{{ url_for('category_posts', category_name='Politics') }}" class="nav-dropdown-link">
+                            <i class="fas fa-landmark mr-2"></i>Politics
+                        </a>
                     </div>
                 </div>
                 
-                <a href="{{ url_for('about') }}" class="nav-link">About</a>
-                <a href="{{ url_for('contact') }}" class="nav-link">Contact</a>
+                <a href="{{ url_for('about') }}" class="nav-link">
+                    <i class="fas fa-info-circle mr-2"></i>About
+                </a>
+                <a href="{{ url_for('contact') }}" class="nav-link">
+                    <i class="fas fa-envelope mr-2"></i>Contact
+                </a>
                 
-                {% if current_user.is_authenticated %}
-                    {% if current_user.role in ['author', 'admin'] %}
-                    <a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard</a>
-                    {% endif %}
-                    <div class="relative group">
-                        <button class="nav-link flex items-center gap-1">
-                            <i class="fas fa-user-circle"></i>
-                            {{ current_user.username }}
-                            <i class="fas fa-chevron-down text-xs"></i>
-                        </button>
-                        <div class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                            <div class="p-2">
-                                <div class="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
-                                    Role: {{ current_user.role|title }}
+                <!-- User Section -->
+                <div class="nav-user-section">
+                    {% if current_user.is_authenticated %}
+                        <div class="nav-dropdown user-nav-dropdown">
+                            <button class="nav-link nav-dropdown-btn user-nav-btn">
+                                <div class="user-avatar-sm">
+                                    {% if current_user.profile_picture %}
+                                    <img src="{{ current_user.get_profile_picture_url() }}" alt="{{ current_user.username }}" class="avatar-img">
+                                    {% else %}
+                                    <div class="avatar-placeholder">{{ current_user.username[0]|upper }}</div>
+                                    {% endif %}
                                 </div>
+                                <span class="user-name">{{ current_user.username }}</span>
+                                <i class="fas fa-chevron-down text-xs ml-1 transition-transform"></i>
+                            </button>
+                            <div class="nav-dropdown-content user-dropdown">
+                                <div class="nav-user-info">
+                                    <div class="user-avatar-md">
+                                        {% if current_user.profile_picture %}
+                                        <img src="{{ current_user.get_profile_picture_url() }}" alt="{{ current_user.username }}" class="avatar-img">
+                                        {% else %}
+                                        <div class="avatar-placeholder">{{ current_user.username[0]|upper }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="user-details">
+                                        <strong>{{ current_user.username }}</strong>
+                                        <span class="nav-user-role">{{ current_user.role|title }}</span>
+                                    </div>
+                                </div>
+                                <a href="{{ url_for('profile') }}" class="nav-dropdown-link">
+                                    <i class="fas fa-user-edit mr-2"></i>Edit Profile
+                                </a>
                                 {% if current_user.role in ['author', 'admin'] %}
-                                <a href="{{ url_for('create_post') }}" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                <a href="{{ url_for('dashboard') }}" class="nav-dropdown-link">
+                                    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                                </a>
+                                <a href="{{ url_for('create_post') }}" class="nav-dropdown-link">
                                     <i class="fas fa-edit mr-2"></i>Write Post
                                 </a>
                                 {% endif %}
-                                <a href="{{ url_for('logout') }}" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-red-600 dark:text-red-400">
+                                <div class="dropdown-divider"></div>
+                                <a href="{{ url_for('logout') }}" class="nav-dropdown-link text-red-600 dark:text-red-400">
                                     <i class="fas fa-sign-out-alt mr-2"></i>Logout
                                 </a>
                             </div>
                         </div>
-                    </div>
-                {% else %}
-                    <a href="{{ url_for('login') }}" class="nav-link">Login</a>
-                    <a href="{{ url_for('register') }}" class="nav-link">Register</a>
-                {% endif %}
-                
-                <button id="darkModeToggle" class="nav-link">
-                    <i class="fas fa-moon"></i>
-                </button>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="nav-link login-btn">
+                            <i class="fas fa-sign-in-alt mr-2"></i>Login
+                        </a>
+                        <a href="{{ url_for('register') }}" class="nav-link register-btn">
+                            <i class="fas fa-user-plus mr-2"></i>Register
+                        </a>
+                    {% endif %}
+                    
+                    <!-- Dark Mode Toggle -->
+                    <button id="darkModeToggle" class="nav-link dark-mode-btn">
+                        <i class="fas fa-moon dark-icon"></i>
+                        <i class="fas fa-sun light-icon"></i>
+                    </button>
+                </div>
             </div>
             
+            <!-- Mobile Menu Toggle -->
             <div class="nav-toggle" id="navToggle">
                 <span class="bar"></span>
                 <span class="bar"></span>
@@ -122,17 +169,17 @@
                 <h3>The Daily Pulse</h3>
                 <p class="text-gray-600 dark:text-gray-400">Your trusted source for news and insights.</p>
                 <div class="flex gap-4 mt-4">
-                    <a href="#" class="text-gray-500 hover:text-blue-600 transition-colors">
-                        <i class="fab fa-twitter text-lg"></i>
+                    <a href="#" class="social-link">
+                        <i class="fab fa-twitter"></i>
                     </a>
-                    <a href="#" class="text-gray-500 hover:text-blue-600 transition-colors">
-                        <i class="fab fa-facebook text-lg"></i>
+                    <a href="#" class="social-link">
+                        <i class="fab fa-facebook"></i>
                     </a>
-                    <a href="#" class="text-gray-500 hover:text-blue-600 transition-colors">
-                        <i class="fab fa-linkedin text-lg"></i>
+                    <a href="#" class="social-link">
+                        <i class="fab fa-linkedin"></i>
                     </a>
-                    <a href="#" class="text-gray-500 hover:text-blue-600 transition-colors">
-                        <i class="fab fa-instagram text-lg"></i>
+                    <a href="#" class="social-link">
+                        <i class="fab fa-instagram"></i>
                     </a>
                 </div>
             </div>

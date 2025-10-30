@@ -1,41 +1,166 @@
 {% extends "base.html" %}
 
+{% block title %}Dashboard - The Daily Pulse{% endblock %}
+
 {% block content %}
 <div class="fade-in">
     <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold">Author Dashboard</h2>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Author Dashboard</h2>
         <a href="{{ url_for('create_post') }}" class="btn btn-primary">
             <i class="fas fa-plus mr-2"></i>Create New Post
         </a>
     </div>
     
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-        <h3 class="text-xl font-semibold mb-4">Your Posts</h3>
-        
-        {% if posts %}
-        <div class="space-y-4">
-            {% for post in posts %}
-            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h4 class="font-semibold">{{ post.title }}</h4>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">
-                            Category: {{ post.category.name }} | 
-                            Created: {{ post.created_at.strftime('%Y-%m-%d') }} |
-                            Status: {% if post.is_published %}Published{% else %}Draft{% endif %} |
-                            Views: {{ post.views }} | Likes: {{ post.likes }}
-                        </p>
-                    </div>
-                    <div class="flex space-x-2">
-                        <a href="{{ url_for('post_detail', post_id=post.id) }}" 
-                           class="btn btn-outline btn-sm">View</a>
-                    </div>
+    <!-- Stats Overview -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center">
+                <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg mr-4">
+                    <i class="fas fa-file-alt text-blue-600 dark:text-blue-400 text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ posts|length }}</p>
+                    <p class="text-gray-600 dark:text-gray-400">Total Posts</p>
                 </div>
             </div>
-            {% endfor %}
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center">
+                <div class="p-3 bg-green-100 dark:bg-green-900 rounded-lg mr-4">
+                    <i class="fas fa-eye text-green-600 dark:text-green-400 text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ posts|sum(attribute='views') }}</p>
+                    <p class="text-gray-600 dark:text-gray-400">Total Views</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center">
+                <div class="p-3 bg-red-100 dark:bg-red-900 rounded-lg mr-4">
+                    <i class="fas fa-heart text-red-600 dark:text-red-400 text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ posts|sum(attribute='likes') }}</p>
+                    <p class="text-gray-600 dark:text-gray-400">Total Likes</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center">
+                <div class="p-3 bg-purple-100 dark:bg-purple-900 rounded-lg mr-4">
+                    <i class="fas fa-chart-line text-purple-600 dark:text-purple-400 text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ posts|selectattr('is_published')|list|length }}</p>
+                    <p class="text-gray-600 dark:text-gray-400">Published</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Posts Table -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Your Posts</h3>
+        </div>
+        
+        {% if posts %}
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Post</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Category</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Stats</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                    {% for post in posts %}
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center">
+                                {% if post.featured_image %}
+                                <img src="{{ post.get_featured_image_url() }}" alt="{{ post.title }}" class="w-12 h-12 rounded-lg object-cover mr-4">
+                                {% else %}
+                                <div class="w-12 h-12 bg-gray-200 dark:bg-gray-600 rounded-lg flex items-center justify-center mr-4">
+                                    <i class="fas fa-image text-gray-400"></i>
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900 dark:text-white">{{ post.title }}</div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                                        {% if post.is_featured %}<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 mr-2">Featured</span>{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="post-category">{{ post.category.name }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if post.is_published %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
+                                Published
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">
+                                Draft
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                            <div class="flex items-center space-x-4">
+                                <span><i class="fas fa-eye mr-1"></i> {{ post.views }}</span>
+                                <span><i class="fas fa-heart mr-1"></i> {{ post.likes }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                            {{ post.created_at.strftime('%b %d, %Y') }}
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center space-x-2">
+                                <a href="{{ url_for('post_detail', post_id=post.id) }}" 
+                                   class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                                   title="View Post">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('edit_post', post_id=post.id) }}" 
+                                   class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition-colors"
+                                   title="Edit Post">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% if current_user.role == 'admin' and not post.is_published %}
+                                <form action="{{ url_for('publish_post', post_id=post.id) }}" method="POST" class="inline">
+                                    <button type="submit" 
+                                            class="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300 transition-colors"
+                                            title="Publish Post">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
         {% else %}
-        <p class="text-gray-600 dark:text-gray-400">You haven't created any posts yet.</p>
+        <div class="text-center py-12">
+            <i class="fas fa-file-alt text-4xl text-gray-300 dark:text-gray-600 mb-4"></i>
+            <h3 class="text-xl font-semibold text-gray-500 dark:text-gray-400 mb-2">No posts yet</h3>
+            <p class="text-gray-400 dark:text-gray-500 mb-4">Create your first post to get started!</p>
+            <a href="{{ url_for('create_post') }}" class="btn btn-primary">
+                <i class="fas fa-plus mr-2"></i>Create Your First Post
+            </a>
+        </div>
         {% endif %}
     </div>
 </div>

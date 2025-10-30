@@ -84,3 +84,60 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+// Mobile navigation functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const navToggle = document.getElementById('navToggle');
+    const navLinks = document.getElementById('navLinks');
+    
+    // Mobile menu toggle
+    if (navToggle) {
+        navToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            navLinks.classList.toggle('active');
+            navToggle.classList.toggle('active');
+        });
+    }
+    
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', function(event) {
+        if (navLinks.classList.contains('active') && 
+            !event.target.closest('.nav-links') && 
+            !event.target.closest('.nav-toggle')) {
+            navLinks.classList.remove('active');
+            navToggle.classList.remove('active');
+        }
+    });
+    
+    // Close mobile menu when clicking on a link
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', function() {
+            if (navLinks.classList.contains('active')) {
+                navLinks.classList.remove('active');
+                navToggle.classList.remove('active');
+            }
+        });
+    });
+    
+    // Prevent dropdown buttons from closing menu on mobile
+    document.querySelectorAll('.nav-dropdown-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            if (window.innerWidth <= 768) {
+                e.preventDefault();
+                const dropdown = this.nextElementSibling;
+                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+            }
+        });
+    });
+    
+    // Handle window resize
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 768) {
+            navLinks.classList.remove('active');
+            navToggle.classList.remove('active');
+            // Show all dropdowns on desktop
+            document.querySelectorAll('.nav-dropdown-content').forEach(dropdown => {
+                dropdown.style.display = '';
+            });
+        }
+    });
+});

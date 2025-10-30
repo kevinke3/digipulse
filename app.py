@@ -4,6 +4,11 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from flask_mail import Mail, Message
 from datetime import datetime
 import os
+from werkzeug.utils import secure_filename
+from PIL import Image
+import uuid
+
+# Import your models and config
 from models import db, User, Post, Category, Comment, NewsletterSubscription
 from config import Config
 
@@ -21,6 +26,58 @@ login_manager.login_view = 'login'
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+# File upload configuration
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def save_image(file, folder):
+    if file and allowed_file(file.filename):
+        # Check file size
+        file.seek(0, os.SEEK_END)
+        file_length = file.tell()
+        file.seek(0)
+        
+        if file_length > MAX_FILE_SIZE:
+            return None, "File size too large. Maximum size is 5MB."
+        
+        # Generate unique filename
+        file_ext = file.filename.rsplit('.', 1)[1].lower()
+        filename = f"{uuid.uuid4().hex}.{file_ext}"
+        
+        # Ensure upload directory exists
+        upload_path = os.path.join(app.config['UPLOAD_FOLDER'], folder)
+        os.makedirs(upload_path, exist_ok=True)
+        
+        file_path = os.path.join(upload_path, filename)
+        
+        try:
+            # Resize and save image
+            image = Image.open(file)
+            
+            # Set different sizes based on folder
+            if folder == 'profiles':
+                size = (300, 300)  # Profile pictures
+            else:  # posts
+                size = (1200, 800)  # Post featured images
+            
+            image.thumbnail(size, Image.Resampling.LANCZOS)
+            
+            # Convert to RGB if necessary
+            if image.mode in ('RGBA', 'P'):
+                image = image.convert('RGB')
+            
+            image.save(file_path, 'JPEG', quality=85)
+            return filename, None
+            
+        except Exception as e:
+            print(f"Error processing image: {e}")
+            return None, "Error processing image."
+    
+    return None, "Invalid file type. Allowed types: PNG, JPG, JPEG, GIF, WEBP."
 
 # Routes
 @app.route('/')
@@ -51,7 +108,6 @@ def category_posts(category_name):
 @app.route('/search')
 def search():
     query = request.args.get('q', '')
-    # Fixed the syntax error here - removed the incorrect assignment
     posts = Post.query.filter(
         Post.title.ilike(f'%{query}%') | 
         Post.content.ilike(f'%{query}%')
@@ -85,6 +141,10 @@ def register():
             flash('Email already registered', 'error')
             return redirect(url_for('register'))
         
+        if User.query.filter_by(username=username).first():
+            flash('Username already taken', 'error')
+            return redirect(url_for('register'))
+        
         user = User(username=username, email=email, role='reader')
         user.set_password(password)
         db.session.add(user)
@@ -101,11 +161,44 @@ def logout():
     flash('You have been logged out.', 'success')
     return redirect(url_for('index'))
 
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    if request.method == 'POST':
+        # Handle profile picture upload
+        if 'profile_picture' in request.files:
+            file = request.files['profile_picture']
+            if file and file.filename != '':
+                filename, error = save_image(file, 'profiles')
+                if filename:
+                    # Delete old profile picture if it exists and isn't default
+                    if current_user.profile_picture and current_user.profile_picture != 'default_profile.png':
+                        old_file_path = os.path.join(app.config['UPLOAD_FOLDER'], 'profiles', current_user.profile_picture)
+                        if os.path.exists(old_file_path):
+                            try:
+                                os.remove(old_file_path)
+                            except OSError:
+                                pass  # File might not exist
+                    
+                    current_user.profile_picture = filename
+                    flash('Profile picture updated successfully!', 'success')
+                elif error:
+                    flash(error, 'error')
+        
+        # Handle bio update
+        current_user.bio = request.form.get('bio', '')
+        
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+        return redirect(url_for('profile'))
+    
+    return render_template('profile.html')
+
 @app.route('/dashboard')
 @login_required
 def dashboard():
     if current_user.role in ['author', 'admin']:
-        posts = Post.query.filter_by(author_id=current_user.id).all()
+        posts = Post.query.filter_by(author_id=current_user.id).order_by(Post.created_at.desc()).all()
         return render_template('dashboard.html', posts=posts)
     flash('You do not have permission to access the dashboard.', 'error')
     return redirect(url_for('index'))
@@ -123,9 +216,22 @@ def create_post():
         category_id = request.form.get('category_id')
         is_featured = bool(request.form.get('is_featured'))
         
+        # Handle featured image upload
+        featured_image = None
+        if 'featured_image' in request.files:
+            file = request.files['featured_image']
+            if file and file.filename != '':
+                filename, error = save_image(file, 'posts')
+                if filename:
+                    featured_image = filename
+                    flash('Featured image uploaded successfully!', 'success')
+                elif error:
+                    flash(error, 'error')
+        
         post = Post(
             title=title,
             content=content,
+            featured_image=featured_image,
             author_id=current_user.id,
             category_id=category_id,
             is_featured=is_featured,
@@ -133,11 +239,97 @@ def create_post():
         )
         db.session.add(post)
         db.session.commit()
-        flash('Post created successfully!', 'success')
+        
+        if current_user.role == 'admin':
+            flash('Post published successfully!', 'success')
+        else:
+            flash('Post created successfully! It will be reviewed by an admin before publication.', 'success')
+            
         return redirect(url_for('dashboard'))
     
     categories = Category.query.all()
     return render_template('create_post.html', categories=categories)
+
+@app.route('/edit-post/<int:post_id>', methods=['GET', 'POST'])
+@login_required
+def edit_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    
+    # Check if user owns the post or is admin
+    if post.author_id != current_user.id and current_user.role != 'admin':
+        flash('You do not have permission to edit this post.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    if request.method == 'POST':
+        post.title = request.form.get('title')
+        post.content = request.form.get('content')
+        post.category_id = request.form.get('category_id')
+        post.is_featured = bool(request.form.get('is_featured'))
+        post.updated_at = datetime.utcnow()
+        
+        # Handle featured image upload
+        if 'featured_image' in request.files:
+            file = request.files['featured_image']
+            if file and file.filename != '':
+                filename, error = save_image(file, 'posts')
+                if filename:
+                    # Delete old featured image if it exists
+                    if post.featured_image:
+                        old_file_path = os.path.join(app.config['UPLOAD_FOLDER'], 'posts', post.featured_image)
+                        if os.path.exists(old_file_path):
+                            try:
+                                os.remove(old_file_path)
+                            except OSError:
+                                pass  # File might not exist
+                    
+                    post.featured_image = filename
+                    flash('Featured image updated successfully!', 'success')
+                elif error:
+                    flash(error, 'error')
+        
+        db.session.commit()
+        flash('Post updated successfully!', 'success')
+        return redirect(url_for('dashboard'))
+    
+    categories = Category.query.all()
+    return render_template('edit_post.html', post=post, categories=categories)
+
+@app.route('/delete-post/<int:post_id>', methods=['POST'])
+@login_required
+def delete_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    
+    # Check if user owns the post or is admin
+    if post.author_id != current_user.id and current_user.role != 'admin':
+        flash('You do not have permission to delete this post.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    # Delete featured image if it exists
+    if post.featured_image:
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], 'posts', post.featured_image)
+        if os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+            except OSError:
+                pass  # File might not exist
+    
+    db.session.delete(post)
+    db.session.commit()
+    flash('Post deleted successfully!', 'success')
+    return redirect(url_for('dashboard'))
+
+@app.route('/publish-post/<int:post_id>', methods=['POST'])
+@login_required
+def publish_post(post_id):
+    if current_user.role != 'admin':
+        flash('You do not have permission to publish posts.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    post = Post.query.get_or_404(post_id)
+    post.is_published = True
+    db.session.commit()
+    flash('Post published successfully!', 'success')
+    return redirect(url_for('dashboard'))
 
 @app.route('/about')
 def about():
@@ -161,6 +353,7 @@ def contact():
             mail.send(msg)
             flash('Message sent successfully!', 'success')
         except Exception as e:
+            print(f"Email error: {e}")
             flash('Failed to send message. Please try again later.', 'error')
         
         return redirect(url_for('contact'))
@@ -200,8 +393,22 @@ def add_comment(post_id):
         flash('Comment cannot be empty.', 'error')
     return redirect(url_for('post_detail', post_id=post_id))
 
+# Error handlers
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    return render_template('500.html'), 500
+
 if __name__ == '__main__':
     with app.app_context():
+        # Create upload directories
+        os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'profiles'), exist_ok=True)
+        os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'posts'), exist_ok=True)
+        
         db.create_all()
         # Create default categories
         if not Category.query.first():

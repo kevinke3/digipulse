@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - The Daily Pulse{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto fade-in">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-8">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">Your Profile</h1>
+        
+        <form method="POST" action="{{ url_for('profile') }}" enctype="multipart/form-data">
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Profile Picture Section -->
+                <div class="md:col-span-1">
+                    <div class="text-center">
+                        <div class="relative inline-block mb-4">
+                            {% if current_user.profile_picture %}
+                            <img src="{{ current_user.get_profile_picture_url() }}" 
+                                 alt="{{ current_user.username }}" 
+                                 class="w-32 h-32 rounded-full object-cover border-4 border-white dark:border-gray-800 shadow-lg">
+                            {% else %}
+                            <div class="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-4xl font-bold border-4 border-white dark:border-gray-800 shadow-lg">
+                                {{ current_user.username[0]|upper }}
+                            </div>
+                            {% endif %}
+                            <label for="profile_picture" class="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer shadow-lg hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-camera"></i>
+                            </label>
+                            <input type="file" id="profile_picture" name="profile_picture" accept="image/*" class="hidden">
+                        </div>
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">{{ current_user.username }}</h2>
+                        <p class="text-gray-500 dark:text-gray-400">{{ current_user.role|title }}</p>
+                        <p class="text-sm text-gray-400 dark:text-gray-500 mt-2">
+                            Member since {{ current_user.created_at.strftime('%B %Y') }}
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Profile Details -->
+                <div class="md:col-span-2">
+                    <div class="space-y-6">
+                        <div class="form-group">
+                            <label class="form-label">Username</label>
+                            <input type="text" value="{{ current_user.username }}" class="form-input bg-gray-50 dark:bg-gray-700" disabled>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Username cannot be changed</p>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" value="{{ current_user.email }}" class="form-input bg-gray-50 dark:bg-gray-700" disabled>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Bio</label>
+                            <textarea name="bio" class="form-textarea" rows="4" placeholder="Tell us about yourself...">{{ current_user.bio or '' }}</textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Account Role</label>
+                            <input type="text" value="{{ current_user.role|title }}" class="form-input bg-gray-50 dark:bg-gray-700" disabled>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save mr-2"></i>Update Profile
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+        
+        <!-- User Stats -->
+        <div class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">Your Activity</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6 text-center">
+                    <div class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                        {{ current_user.posts|length }}
+                    </div>
+                    <div class="text-gray-600 dark:text-gray-400">Posts Published</div>
+                </div>
+                <div class="bg-green-50 dark:bg-green-900/20 rounded-xl p-6 text-center">
+                    <div class="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
+                        {{ current_user.comments|length }}
+                    </div>
+                    <div class="text-gray-600 dark:text-gray-400">Comments</div>
+                </div>
+                <div class="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-6 text-center">
+                    <div class="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
+                        {{ current_user.created_at.strftime('%b %Y') }}
+                    </div>
+                    <div class="text-gray-600 dark:text-gray-400">Member Since</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const profilePictureInput = document.getElementById('profile_picture');
+    const profilePictureImg = document.querySelector('.relative img');
+    const avatarPlaceholder = document.querySelector('.avatar-placeholder');
+    
+    profilePictureInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if (profilePictureImg) {
+                    profilePictureImg.src = e.target.result;
+                }
+                // Update navbar avatar in real-time
+                const navAvatar = document.querySelector('.user-avatar-sm .avatar-img');
+                if (navAvatar) {
+                    navAvatar.src = e.target.result;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+});
+</script>
+{% endblock %}
