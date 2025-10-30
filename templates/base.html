@@ -21,15 +21,54 @@
             
             <div class="nav-links" id="navLinks">
                 <a href="{{ url_for('index') }}" class="nav-link">Home</a>
-                <a href="{{ url_for('category_posts', category_name='Technology') }}" class="nav-link">Technology</a>
-                <a href="{{ url_for('category_posts', category_name='Business') }}" class="nav-link">Business</a>
-                <a href="{{ url_for('category_posts', category_name='Sports') }}" class="nav-link">Sports</a>
+                
+                <!-- All Categories -->
+                <div class="relative group">
+                    <button class="nav-link flex items-center gap-1">
+                        Categories <i class="fas fa-chevron-down text-xs"></i>
+                    </button>
+                    <div class="absolute left-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                        <div class="p-2">
+                            <a href="{{ url_for('category_posts', category_name='Technology') }}" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Technology</a>
+                            <a href="{{ url_for('category_posts', category_name='Business') }}" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Business</a>
+                            <a href="{{ url_for('category_posts', category_name='Lifestyle') }}" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Lifestyle</a>
+                            <a href="{{ url_for('category_posts', category_name='Entertainment') }}" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Entertainment</a>
+                            <a href="{{ url_for('category_posts', category_name='Sports') }}" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Sports</a>
+                            <a href="{{ url_for('category_posts', category_name='Health') }}" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Health</a>
+                            <a href="{{ url_for('category_posts', category_name='Politics') }}" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Politics</a>
+                        </div>
+                    </div>
+                </div>
+                
                 <a href="{{ url_for('about') }}" class="nav-link">About</a>
                 <a href="{{ url_for('contact') }}" class="nav-link">Contact</a>
                 
                 {% if current_user.is_authenticated %}
+                    {% if current_user.role in ['author', 'admin'] %}
                     <a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard</a>
-                    <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
+                    {% endif %}
+                    <div class="relative group">
+                        <button class="nav-link flex items-center gap-1">
+                            <i class="fas fa-user-circle"></i>
+                            {{ current_user.username }}
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                        <div class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                            <div class="p-2">
+                                <div class="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                                    Role: {{ current_user.role|title }}
+                                </div>
+                                {% if current_user.role in ['author', 'admin'] %}
+                                <a href="{{ url_for('create_post') }}" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                    <i class="fas fa-edit mr-2"></i>Write Post
+                                </a>
+                                {% endif %}
+                                <a href="{{ url_for('logout') }}" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-red-600 dark:text-red-400">
+                                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 {% else %}
                     <a href="{{ url_for('login') }}" class="nav-link">Login</a>
                     <a href="{{ url_for('register') }}" class="nav-link">Register</a>
@@ -61,11 +100,13 @@
 
     <!-- Main Content -->
     <main class="main-content">
-        {% with messages = get_flashed_messages() %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <div class="flash-messages">
-                    {% for message in messages %}
-                        <div class="flash-message">{{ message }}</div>
+                    {% for category, message in messages %}
+                        <div class="flash-message {{ category }}">
+                            {{ message }}
+                        </div>
                     {% endfor %}
                 </div>
             {% endif %}
@@ -79,16 +120,48 @@
         <div class="footer-content">
             <div class="footer-section">
                 <h3>The Daily Pulse</h3>
-                <p>Your trusted source for news and insights.</p>
+                <p class="text-gray-600 dark:text-gray-400">Your trusted source for news and insights.</p>
+                <div class="flex gap-4 mt-4">
+                    <a href="#" class="text-gray-500 hover:text-blue-600 transition-colors">
+                        <i class="fab fa-twitter text-lg"></i>
+                    </a>
+                    <a href="#" class="text-gray-500 hover:text-blue-600 transition-colors">
+                        <i class="fab fa-facebook text-lg"></i>
+                    </a>
+                    <a href="#" class="text-gray-500 hover:text-blue-600 transition-colors">
+                        <i class="fab fa-linkedin text-lg"></i>
+                    </a>
+                    <a href="#" class="text-gray-500 hover:text-blue-600 transition-colors">
+                        <i class="fab fa-instagram text-lg"></i>
+                    </a>
+                </div>
             </div>
             <div class="footer-section">
                 <h4>Categories</h4>
                 <a href="{{ url_for('category_posts', category_name='Technology') }}">Technology</a>
                 <a href="{{ url_for('category_posts', category_name='Business') }}">Business</a>
+                <a href="{{ url_for('category_posts', category_name='Lifestyle') }}">Lifestyle</a>
+                <a href="{{ url_for('category_posts', category_name='Entertainment') }}">Entertainment</a>
                 <a href="{{ url_for('category_posts', category_name='Sports') }}">Sports</a>
+                <a href="{{ url_for('category_posts', category_name='Health') }}">Health</a>
+                <a href="{{ url_for('category_posts', category_name='Politics') }}">Politics</a>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <a href="{{ url_for('about') }}">About Us</a>
+                <a href="{{ url_for('contact') }}">Contact</a>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                {% if not current_user.is_authenticated %}
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('register') }}">Register</a>
+                {% endif %}
             </div>
             <div class="footer-section">
                 <h4>Newsletter</h4>
+                <p class="text-gray-600 dark:text-gray-400 text-sm mb-3">
+                    Stay updated with our latest news and articles.
+                </p>
                 <form action="{{ url_for('newsletter_subscribe') }}" method="POST" class="newsletter-form">
                     <input type="email" name="email" placeholder="Your email" required class="newsletter-input">
                     <button type="submit" class="newsletter-button">Subscribe</button>
@@ -103,5 +176,7 @@
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script src="{{ url_for('static', filename='js/dark-mode.js') }}"></script>
     <script src="{{ url_for('static', filename='js/animations.js') }}"></script>
+    
+    {% block scripts %}{% endblock %}
 </body>
 </html>
