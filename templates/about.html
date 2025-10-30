@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto fade-in">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
+        <h1 class="text-3xl font-bold mb-6">About The Daily Pulse</h1>
+        
+        <div class="prose dark:prose-invert max-w-none">
+            <p class="text-lg text-gray-700 dark:text-gray-300 mb-6">
+                Welcome to The Daily Pulse, your trusted source for timely news, insightful analysis, 
+                and engaging stories that matter. We are committed to delivering high-quality journalism 
+                that keeps you informed and connected to the world around you.
+            </p>
+            
+            <h2 class="text-2xl font-semibold mt-8 mb-4">Our Mission</h2>
+            <p class="mb-6">
+                Our mission is to provide accurate, unbiased news coverage while fostering a community 
+                of readers and writers who value thoughtful discourse and diverse perspectives.
+            </p>
+            
+            <h2 class="text-2xl font-semibold mt-8 mb-4">What We Offer</h2>
+            <ul class="list-disc list-inside space-y-2 mb-6">
+                <li>Breaking news and current events</li>
+                <li>In-depth analysis and feature stories</li>
+                <li>Expert opinions and commentary</li>
+                <li>Community-driven content</li>
+                <li>Multi-platform accessibility</li>
+            </ul>
+            
+            <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6 mt-8">
+                <h3 class="text-xl font-semibold mb-3">Join Our Community</h3>
+                <p class="mb-4">
+                    Become part of our growing community of readers and contributors. 
+                    Share your stories, engage in discussions, and stay informed.
+                </p>
+                <a href="{{ url_for('register') }}" class="btn btn-primary">Get Started</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
