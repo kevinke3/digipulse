@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">Author Dashboard</h2>
+        <a href="{{ url_for('create_post') }}" class="btn btn-primary">
+            <i class="fas fa-plus mr-2"></i>Create New Post
+        </a>
+    </div>
+    
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <h3 class="text-xl font-semibold mb-4">Your Posts</h3>
+        
+        {% if posts %}
+        <div class="space-y-4">
+            {% for post in posts %}
+            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h4 class="font-semibold">{{ post.title }}</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">
+                            Category: {{ post.category.name }} | 
+                            Created: {{ post.created_at.strftime('%Y-%m-%d') }} |
+                            Status: {% if post.is_published %}Published{% else %}Draft{% endif %} |
+                            Views: {{ post.views }} | Likes: {{ post.likes }}
+                        </p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <a href="{{ url_for('post_detail', post_id=post.id) }}" 
+                           class="btn btn-outline btn-sm">View</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-600 dark:text-gray-400">You haven't created any posts yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
