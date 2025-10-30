@@ -51,11 +51,11 @@ def category_posts(category_name):
 @app.route('/search')
 def search():
     query = request.args.get('q', '')
+    # Fixed the syntax error here - removed the incorrect assignment
     posts = Post.query.filter(
         Post.title.ilike(f'%{query}%') | 
-        Post.content.ilike(f'%{query}%'),
-        Post.is_published=True
-    ).order_by(Post.created_at.desc()).all()
+        Post.content.ilike(f'%{query}%')
+    ).filter_by(is_published=True).order_by(Post.created_at.desc()).all()
     return render_template('index.html', posts=posts, search_query=query)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -67,9 +67,11 @@ def login():
         
         if user and user.check_password(password):
             login_user(user)
-            return redirect(url_for('dashboard'))
+            flash('Logged in successfully!', 'success')
+            next_page = request.args.get('next')
+            return redirect(next_page or url_for('dashboard'))
         else:
-            flash('Invalid email or password')
+            flash('Invalid email or password', 'error')
     return render_template('login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -80,7 +82,7 @@ def register():
         password = request.form.get('password')
         
         if User.query.filter_by(email=email).first():
-            flash('Email already registered')
+            flash('Email already registered', 'error')
             return redirect(url_for('register'))
         
         user = User(username=username, email=email, role='reader')
@@ -88,9 +90,16 @@ def register():
         db.session.add(user)
         db.session.commit()
         
-        flash('Registration successful! Please login.')
+        flash('Registration successful! Please login.', 'success')
         return redirect(url_for('login'))
     return render_template('register.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('You have been logged out.', 'success')
+    return redirect(url_for('index'))
 
 @app.route('/dashboard')
 @login_required
@@ -98,12 +107,14 @@ def dashboard():
     if current_user.role in ['author', 'admin']:
         posts = Post.query.filter_by(author_id=current_user.id).all()
         return render_template('dashboard.html', posts=posts)
+    flash('You do not have permission to access the dashboard.', 'error')
     return redirect(url_for('index'))
 
 @app.route('/create-post', methods=['GET', 'POST'])
 @login_required
 def create_post():
     if current_user.role not in ['author', 'admin']:
+        flash('You need author privileges to create posts.', 'error')
         return redirect(url_for('index'))
     
     if request.method == 'POST':
@@ -118,11 +129,11 @@ def create_post():
             author_id=current_user.id,
             category_id=category_id,
             is_featured=is_featured,
-            is_published=current_user.role == 'admin'
+            is_published=current_user.role == 'admin'  # Auto-publish for admins
         )
         db.session.add(post)
         db.session.commit()
-        flash('Post created successfully!')
+        flash('Post created successfully!', 'success')
         return redirect(url_for('dashboard'))
     
     categories = Category.query.all()
@@ -140,14 +151,18 @@ def contact():
         message = request.form.get('message')
         
         # Send email to admin
-        msg = Message(
-            subject=f'Contact Form Message from {name}',
-            sender=app.config['MAIL_DEFAULT_SENDER'],
-            recipients=[app.config['ADMIN_EMAIL']],
-            body=f"Name: {name}\nEmail: {email}\nMessage: {message}"
-        )
-        mail.send(msg)
-        flash('Message sent successfully!')
+        try:
+            msg = Message(
+                subject=f'Contact Form Message from {name}',
+                sender=app.config['MAIL_DEFAULT_SENDER'],
+                recipients=[app.config['ADMIN_EMAIL']],
+                body=f"Name: {name}\nEmail: {email}\nMessage: {message}"
+            )
+            mail.send(msg)
+            flash('Message sent successfully!', 'success')
+        except Exception as e:
+            flash('Failed to send message. Please try again later.', 'error')
+        
         return redirect(url_for('contact'))
     
     return render_template('contact.html')
@@ -159,9 +174,9 @@ def newsletter_subscribe():
         subscription = NewsletterSubscription(email=email)
         db.session.add(subscription)
         db.session.commit()
-        flash('Successfully subscribed to newsletter!')
+        flash('Successfully subscribed to newsletter!', 'success')
     else:
-        flash('Email already subscribed')
+        flash('Email already subscribed', 'info')
     return redirect(url_for('index'))
 
 @app.route('/like-post/<int:post_id>', methods=['POST'])
@@ -176,10 +191,13 @@ def like_post(post_id):
 @login_required
 def add_comment(post_id):
     content = request.form.get('content')
-    comment = Comment(content=content, user_id=current_user.id, post_id=post_id)
-    db.session.add(comment)
-    db.session.commit()
-    flash('Comment added successfully!')
+    if content:
+        comment = Comment(content=content, user_id=current_user.id, post_id=post_id)
+        db.session.add(comment)
+        db.session.commit()
+        flash('Comment added successfully!', 'success')
+    else:
+        flash('Comment cannot be empty.', 'error')
     return redirect(url_for('post_detail', post_id=post_id))
 
 if __name__ == '__main__':
@@ -192,4 +210,14 @@ if __name__ == '__main__':
                 category = Category(name=cat_name)
                 db.session.add(category)
             db.session.commit()
+            print("Default categories created!")
+        
+        # Create admin user if none exists
+        if not User.query.filter_by(role='admin').first():
+            admin = User(username='admin', email='admin@dailypulse.com', role='admin')
+            admin.set_password('admin123')
+            db.session.add(admin)
+            db.session.commit()
+            print("Admin user created: admin@dailypulse.com / admin123")
+    
     app.run(debug=True)
